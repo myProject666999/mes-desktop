@@ -21,6 +21,14 @@ public class UserContext {
         if (currentUser == null) return false;
         return currentUser.getRoles().stream()
                 .flatMap(role -> role.getPermissions().stream())
-                .anyMatch(permission -> permission.getName().equals(permissionName));
+                .anyMatch(perm -> {
+                    String permName = perm.getName();
+                    if (permName.equals(permissionName)) return true;
+                    if (permName.endsWith(":manage")) {
+                        String prefix = permName.substring(0, permName.indexOf(":manage"));
+                        if (permissionName.startsWith(prefix + ":")) return true;
+                    }
+                    return false;
+                });
     }
 }

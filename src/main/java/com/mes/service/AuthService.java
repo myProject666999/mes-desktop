@@ -48,6 +48,19 @@ public class AuthService {
     }
 
     public boolean hasPermission(String permissionName) {
-        return UserContext.hasPermission(permissionName);
+        User user = getCurrentUser();
+        if (user == null) return false;
+        
+        return user.getRoles().stream()
+                .flatMap(role -> role.getPermissions().stream())
+                .anyMatch(perm -> {
+                    String permName = perm.getName();
+                    if (permName.equals(permissionName)) return true;
+                    if (permName.endsWith(":manage")) {
+                        String prefix = permName.substring(0, permName.indexOf(":manage"));
+                        if (permissionName.startsWith(prefix + ":")) return true;
+                    }
+                    return false;
+                });
     }
 }

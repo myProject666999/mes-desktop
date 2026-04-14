@@ -30,13 +30,22 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         Permission userManage = createPermissionIfNotExists("user:manage", "用户管理");
+        Permission userAdd = createPermissionIfNotExists("user:add", "添加用户");
+        Permission userEdit = createPermissionIfNotExists("user:edit", "编辑用户");
+        Permission userResetPassword = createPermissionIfNotExists("user:resetpassword", "重置用户密码");
+        Permission userDelete = createPermissionIfNotExists("user:delete", "删除用户");
         Permission roleManage = createPermissionIfNotExists("role:manage", "角色管理");
+        Permission roleAdd = createPermissionIfNotExists("role:add", "添加角色");
+        Permission roleEdit = createPermissionIfNotExists("role:edit", "编辑角色");
+        Permission roleDelete = createPermissionIfNotExists("role:delete", "删除角色");
         Permission permissionManage = createPermissionIfNotExists("permission:manage", "权限管理");
         Permission passwordChange = createPermissionIfNotExists("password:change", "修改密码");
         Permission mesView = createPermissionIfNotExists("mes:view", "查看MES数据");
 
         Role adminRole = createRoleIfNotExists("ADMIN", "系统管理员",
-                userManage, roleManage, permissionManage, passwordChange, mesView);
+                userManage, userAdd, userEdit, userResetPassword, userDelete,
+                roleManage, roleAdd, roleEdit, roleDelete,
+                permissionManage, passwordChange, mesView);
 
         Role userRole = createRoleIfNotExists("USER", "普通用户",
                 passwordChange, mesView);
