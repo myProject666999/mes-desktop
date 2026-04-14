@@ -54,10 +54,15 @@ public class StageManager {
                     primaryStage.setY(event.getScreenY() - yOffset);
                 });
 
-                primaryStage.initStyle(StageStyle.UNDECORATED);
+                // 隐藏当前窗口，切换场景后再显示
+                primaryStage.hide();
                 primaryStage.setScene(scene);
                 primaryStage.setTitle("MES System - Login");
                 primaryStage.setResizable(false);
+                primaryStage.setMaximized(false);
+                primaryStage.setFullScreen(false);
+                primaryStage.sizeToScene();
+                primaryStage.centerOnScreen();
                 primaryStage.show();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -85,7 +90,11 @@ public class StageManager {
                 primaryStage.setScene(scene);
                 primaryStage.setTitle("MES System");
                 primaryStage.setResizable(true);
-                primaryStage.setMaximized(true);
+                primaryStage.setMaximized(false);
+                primaryStage.setFullScreen(false);
+                primaryStage.setWidth(1280);
+                primaryStage.setHeight(800);
+                primaryStage.centerOnScreen();
                 primaryStage.show();
             } catch (IOException e) {
                 e.printStackTrace();

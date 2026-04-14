@@ -1,6 +1,7 @@
 package com.mes.controller;
 
 import com.mes.entity.Permission;
+import com.mes.service.AuthService;
 import com.mes.service.PermissionService;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 public class PermissionManagementController {
 
     private final PermissionService permissionService;
+    private final AuthService authService;
 
     @FXML
     private TableView<Permission> permissionTable;
@@ -25,14 +27,26 @@ public class PermissionManagementController {
     @FXML
     private TableColumn<Permission, Boolean> permActionColumn;
 
-    public PermissionManagementController(PermissionService permissionService) {
+    @FXML
+    private Button addPermBtn;
+
+    public PermissionManagementController(PermissionService permissionService, AuthService authService) {
         this.permissionService = permissionService;
+        this.authService = authService;
     }
 
     @FXML
     public void initialize() {
         loadPermissions();
         setupActionColumn();
+        setupButtonPermissions();
+    }
+
+    private void setupButtonPermissions() {
+        if (addPermBtn != null) {
+            addPermBtn.setVisible(authService.hasPermission("permission:create"));
+            addPermBtn.setManaged(authService.hasPermission("permission:create"));
+        }
     }
 
     private void loadPermissions() {
@@ -40,11 +54,14 @@ public class PermissionManagementController {
     }
 
     private void setupActionColumn() {
+        boolean canEdit = authService.hasPermission("permission:edit");
+        boolean canDelete = authService.hasPermission("permission:delete");
+
         Callback<TableColumn<Permission, Boolean>, TableCell<Permission, Boolean>> cellFactory =
                 param -> new TableCell<>() {
                     final Button editBtn = new Button("编辑");
                     final Button deleteBtn = new Button("删除");
-                    final HBox pane = new HBox(5, editBtn, deleteBtn);
+                    final HBox pane = new HBox(5);
 
                     {
                         editBtn.getStyleClass().addAll("action-button", "edit-button");
@@ -59,6 +76,9 @@ public class PermissionManagementController {
                             Permission perm = getTableView().getItems().get(getIndex());
                             deletePermission(perm);
                         });
+
+                        if (canEdit) pane.getChildren().add(editBtn);
+                        if (canDelete) pane.getChildren().add(deleteBtn);
                     }
 
                     @Override

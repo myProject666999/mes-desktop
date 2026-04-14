@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  mes-desktop:
+    build: .
+    container_name: mes-desktop
+    ports:
+      - "5900:5900"
+    environment:
+      - DISPLAY=:1
+    volumes:
+      - ./mes.db:/app/mes.db
+    restart: unless-stopped

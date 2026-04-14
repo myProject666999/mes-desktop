@@ -13,7 +13,7 @@
     <HBox alignment="CENTER_LEFT" spacing="15">
         <Label styleClass="content-header" text="用户管理"/>
         <Region HBox.hgrow="ALWAYS"/>
-        <Button styleClass="action-button, add-button" text="➕ 添加用户" onAction="#showAddDialog"/>
+        <Button fx:id="addUserBtn" styleClass="action-button, add-button" text="➕ 添加用户" onAction="#showAddDialog"/>
     </HBox>
 
     <TableView fx:id="userTable" prefHeight="500">
