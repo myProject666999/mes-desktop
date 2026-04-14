@@ -22,6 +22,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -104,12 +106,23 @@ public class MainController {
     }
 
     private void setActiveButton(Button activeButton) {
-        activeButton.getScene().lookupAll(".sidebar-button").forEach(node -> {
-            if (node instanceof Button) {
-                ((Button) node).getStyleClass().remove("active");
-            }
-        });
+        // 使用递归查找所有带有 sidebar-button 样式的按钮
+        findAllButtonsWithStyle(activeButton.getScene().getRoot(), "sidebar-button")
+                .forEach(btn -> btn.getStyleClass().remove("active"));
         activeButton.getStyleClass().add("active");
+    }
+
+    private Set<Button> findAllButtonsWithStyle(javafx.scene.Parent parent, String styleClass) {
+        Set<Button> buttons = new HashSet<>();
+        for (javafx.scene.Node node : parent.getChildrenUnmodifiable()) {
+            if (node instanceof Button && node.getStyleClass().contains(styleClass)) {
+                buttons.add((Button) node);
+            }
+            if (node instanceof javafx.scene.Parent) {
+                buttons.addAll(findAllButtonsWithStyle((javafx.scene.Parent) node, styleClass));
+            }
+        }
+        return buttons;
     }
 
     @FXML
@@ -144,14 +157,12 @@ public class MainController {
     @FXML
     public void showChangePassword() {
         loadView("/fxml/change-password.fxml");
-        contentPane.getScene().lookupAll(".sidebar-button").forEach(node -> {
-            if (node instanceof Button) {
-                Button btn = (Button) node;
-                if ("🔐  修改密码".equals(btn.getText())) {
-                    setActiveButton(btn);
-                }
-            }
-        });
+        findAllButtonsWithStyle(contentPane.getScene().getRoot(), "sidebar-button")
+                .forEach(btn -> {
+                    if ("🔐  修改密码".equals(btn.getText())) {
+                        setActiveButton(btn);
+                    }
+                });
     }
 
     private void loadView(String fxmlPath) {
