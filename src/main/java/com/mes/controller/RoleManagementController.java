@@ -3,6 +3,7 @@ package com.mes.controller;
 import com.mes.dto.RoleDTO;
 import com.mes.entity.Permission;
 import com.mes.entity.Role;
+import com.mes.service.AuthService;
 import com.mes.service.PermissionService;
 import com.mes.service.RoleService;
 import javafx.application.Platform;
@@ -23,6 +24,7 @@ public class RoleManagementController {
 
     private final RoleService roleService;
     private final PermissionService permissionService;
+    private final AuthService authService;
 
     @FXML
     private TableView<RoleDTO> roleTable;
@@ -30,15 +32,25 @@ public class RoleManagementController {
     @FXML
     private TableColumn<RoleDTO, Boolean> roleActionColumn;
 
-    public RoleManagementController(RoleService roleService, PermissionService permissionService) {
+    @FXML
+    private Button addRoleBtn;
+
+    public RoleManagementController(RoleService roleService, PermissionService permissionService, AuthService authService) {
         this.roleService = roleService;
         this.permissionService = permissionService;
+        this.authService = authService;
     }
 
     @FXML
     public void initialize() {
         loadRoles();
         setupActionColumn();
+        setupButtonPermissions();
+    }
+
+    private void setupButtonPermissions() {
+        addRoleBtn.setVisible(authService.hasPermission("role:create"));
+        addRoleBtn.setManaged(authService.hasPermission("role:create"));
     }
 
     private void loadRoles() {
@@ -53,7 +65,7 @@ public class RoleManagementController {
                 param -> new TableCell<>() {
                     final Button editBtn = new Button("编辑");
                     final Button deleteBtn = new Button("删除");
-                    final HBox pane = new HBox(5, editBtn, deleteBtn);
+                    final HBox pane = new HBox(5);
 
                     {
                         editBtn.getStyleClass().addAll("action-button", "edit-button");
@@ -76,7 +88,14 @@ public class RoleManagementController {
                         if (empty) {
                             setGraphic(null);
                         } else {
-                            setGraphic(pane);
+                            pane.getChildren().clear();
+                            if (authService.hasPermission("role:edit")) {
+                                pane.getChildren().add(editBtn);
+                            }
+                            if (authService.hasPermission("role:delete")) {
+                                pane.getChildren().add(deleteBtn);
+                            }
+                            setGraphic(pane.getChildren().isEmpty() ? null : pane);
                         }
                     }
                 };
