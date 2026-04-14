@@ -17,8 +17,10 @@ public class JavaFxApplication extends Application {
 
     @Override
     public void start(Stage stage) {
+        stage.initStyle(javafx.stage.StageStyle.UNDECORATED);
         applicationContext.publishEvent(new StageReadyEvent(stage));
         StageManager stageManager = applicationContext.getBean(StageManager.class);
+        stageManager.setPrimaryStage(stage);
         stageManager.showLogin();
     }
 
