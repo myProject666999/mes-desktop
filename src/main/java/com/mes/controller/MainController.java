@@ -66,6 +66,9 @@ public class MainController {
     @FXML
     private Button permissionMenuBtn;
 
+    @FXML
+    private Button unitMenuBtn;
+
     public MainController(AuthService authService, UserService userService,
                           RoleService roleService, PermissionService permissionService,
                           StageManager stageManager, ApplicationContext applicationContext) {
@@ -84,6 +87,8 @@ public class MainController {
 
         updateDashboard();
 
+        unitMenuBtn.setVisible(authService.hasPermission("unit:manage"));
+        unitMenuBtn.setManaged(authService.hasPermission("unit:manage"));
         userMenuBtn.setVisible(authService.hasPermission("user:manage"));
         userMenuBtn.setManaged(authService.hasPermission("user:manage"));
         roleMenuBtn.setVisible(authService.hasPermission("role:manage"));
@@ -152,6 +157,12 @@ public class MainController {
     public void showPermissionManagement() {
         loadView("/fxml/permission-management.fxml");
         setActiveButton(permissionMenuBtn);
+    }
+
+    @FXML
+    public void showUnitManagement() {
+        loadView("/fxml/unit-management.fxml");
+        setActiveButton(unitMenuBtn);
     }
 
     @FXML

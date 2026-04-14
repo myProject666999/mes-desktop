@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.mes.controller.UnitManagementController"
+      spacing="20">
+
+    <HBox alignment="CENTER_LEFT" spacing="15">
+        <Label styleClass="content-header" text="计量单位"/>
+    </HBox>
+
+    <HBox spacing="15" alignment="CENTER_LEFT">
+        <Label text="单位编码:"/>
+        <TextField fx:id="codeSearchField" promptText="请输入单位编码" prefWidth="150"/>
+        <Label text="单位名称:"/>
+        <TextField fx:id="nameSearchField" promptText="请输入单位名称" prefWidth="150"/>
+        <Button styleClass="action-button" text="🔍 查询" onAction="#search"/>
+        <Button styleClass="action-button" text="🔄 重置" onAction="#reset"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="addButton" styleClass="action-button, add-button" text="➕ 新增" onAction="#showAddDialog"/>
+        <Button fx:id="editButton" styleClass="action-button, edit-button" text="✏️ 修改" onAction="#showEditDialog"/>
+        <Button fx:id="deleteButton" styleClass="action-button, delete-button" text="🗑️ 删除" onAction="#deleteSelected"/>
+        <Button fx:id="exportButton" styleClass="action-button" text="📤 导出" onAction="#exportExcel"/>
+    </HBox>
+
+    <TableView fx:id="unitTable" prefHeight="500">
+        <columns>
+            <TableColumn fx:id="selectColumn" text="选择" prefWidth="60">
+            </TableColumn>
+            <TableColumn text="ID" prefWidth="60">
+                <cellValueFactory><PropertyValueFactory property="id"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="单位编码" prefWidth="120">
+                <cellValueFactory><PropertyValueFactory property="code"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="单位名称" prefWidth="150">
+                <cellValueFactory><PropertyValueFactory property="name"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn fx:id="mainUnit" text="启用主单位" prefWidth="120">
+            </TableColumn>
+            <TableColumn fx:id="enabled" text="是否启用" prefWidth="120">
+            </TableColumn>
+            <TableColumn text="描述" prefWidth="300">
+                <cellValueFactory><PropertyValueFactory property="description"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn fx:id="unitActionColumn" text="操作" prefWidth="150">
+            </TableColumn>
+        </columns>
+    </TableView>
+</VBox>

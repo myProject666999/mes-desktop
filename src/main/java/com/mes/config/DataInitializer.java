@@ -29,6 +29,7 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        Permission unitManage = createPermissionIfNotExists("unit:manage", "计量单位管理");
         Permission userManage = createPermissionIfNotExists("user:manage", "用户管理");
         Permission roleManage = createPermissionIfNotExists("role:manage", "角色管理");
         Permission permissionManage = createPermissionIfNotExists("permission:manage", "权限管理");
@@ -36,19 +37,21 @@ public class DataInitializer implements CommandLineRunner {
         Permission mesView = createPermissionIfNotExists("mes:view", "查看MES数据");
 
         Role adminRole = createRoleIfNotExists("ADMIN", "系统管理员",
-                userManage, roleManage, permissionManage, passwordChange, mesView);
+                unitManage, userManage, roleManage, permissionManage, passwordChange, mesView);
 
         Role userRole = createRoleIfNotExists("USER", "普通用户",
                 passwordChange, mesView);
 
-        if (!userRepository.existsByUsername("admin")) {
-            User admin = new User();
+        User admin = userRepository.findByUsername("admin").orElse(null);
+        if (admin == null) {
+            admin = new User();
             admin.setUsername("admin");
             admin.setPassword(PasswordEncoder.encode("admin123"));
             admin.setRealName("系统管理员");
-            admin.setRoles(new HashSet<>(Arrays.asList(adminRole)));
-            userRepository.save(admin);
+            admin.setEnabled(true);
         }
+        admin.setRoles(new HashSet<>(Arrays.asList(adminRole)));
+        userRepository.save(admin);
 
         if (!userRepository.existsByUsername("user")) {
             User user = new User();
@@ -71,13 +74,13 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private Role createRoleIfNotExists(String name, String description, Permission... permissions) {
-        return roleRepository.findByName(name)
-                .orElseGet(() -> {
-                    Role role = new Role();
-                    role.setName(name);
-                    role.setDescription(description);
-                    role.setPermissions(new HashSet<>(Arrays.asList(permissions)));
-                    return roleRepository.save(role);
-                });
+        Role role = roleRepository.findByName(name).orElse(null);
+        if (role == null) {
+            role = new Role();
+            role.setName(name);
+            role.setDescription(description);
+        }
+        role.setPermissions(new HashSet<>(Arrays.asList(permissions)));
+        return roleRepository.save(role);
     }
 }
