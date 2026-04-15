@@ -34,9 +34,10 @@ public class DataInitializer implements CommandLineRunner {
         Permission permissionManage = createPermissionIfNotExists("permission:manage", "权限管理");
         Permission passwordChange = createPermissionIfNotExists("password:change", "修改密码");
         Permission mesView = createPermissionIfNotExists("mes:view", "查看MES数据");
+        Permission uomManage = createPermissionIfNotExists("uom:manage", "计量单位管理");
 
         Role adminRole = createRoleIfNotExists("ADMIN", "系统管理员",
-                userManage, roleManage, permissionManage, passwordChange, mesView);
+                userManage, roleManage, permissionManage, passwordChange, mesView, uomManage);
 
         Role userRole = createRoleIfNotExists("USER", "普通用户",
                 passwordChange, mesView);
@@ -72,6 +73,10 @@ public class DataInitializer implements CommandLineRunner {
 
     private Role createRoleIfNotExists(String name, String description, Permission... permissions) {
         return roleRepository.findByName(name)
+                .map(role -> {
+                    role.setPermissions(new HashSet<>(Arrays.asList(permissions)));
+                    return roleRepository.save(role);
+                })
                 .orElseGet(() -> {
                     Role role = new Role();
                     role.setName(name);

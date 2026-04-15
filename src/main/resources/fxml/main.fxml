@@ -38,6 +38,7 @@
                 <Button fx:id="userMenuBtn" styleClass="sidebar-button" text="👥  用户管理" onAction="#showUserManagement"/>
                 <Button fx:id="roleMenuBtn" styleClass="sidebar-button" text="🎭  角色管理" onAction="#showRoleManagement"/>
                 <Button fx:id="permissionMenuBtn" styleClass="sidebar-button" text="🔑  权限管理" onAction="#showPermissionManagement"/>
+                <Button fx:id="uomMenuBtn" styleClass="sidebar-button" text="📏  计量单位" onAction="#showUnitOfMeasure"/>
                 <Button styleClass="sidebar-button" text="🔐  修改密码" onAction="#showChangePassword"/>
                 <Region VBox.vgrow="ALWAYS"/>
                 <Separator style="-fx-padding: 5 10;"/>
