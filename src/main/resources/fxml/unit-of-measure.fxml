@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.mes.controller.UnitOfMeasureController"
+      spacing="15">
+
+    <HBox alignment="CENTER_LEFT" spacing="15">
+        <Label styleClass="content-header" text="计量单位"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button styleClass="action-button, add-button" text="➕ 新增" onAction="#showAddDialog"/>
+        <Button styleClass="action-button, edit-button" text="✏️ 修改" onAction="#showEditDialogFromSelection"/>
+        <Button styleClass="action-button, delete-button" text="🗑️ 删除" onAction="#deleteSelected"/>
+        <Button styleClass="action-button" text="📊 导出" onAction="#exportToExcel"
+                style="-fx-background-color: #28a745; -fx-text-fill: white;"/>
+    </HBox>
+
+    <HBox alignment="CENTER_LEFT" spacing="10">
+        <Label text="单位编码:" style="-fx-text-fill: #cccccc;"/>
+        <TextField fx:id="searchUnitCodeField" promptText="请输入单位编码" prefWidth="150"/>
+        <Label text="单位名称:" style="-fx-text-fill: #cccccc;"/>
+        <TextField fx:id="searchUnitNameField" promptText="请输入单位名称" prefWidth="150"/>
+        <Button text="🔍 查询" onAction="#search" styleClass="action-button"
+                style="-fx-background-color: #007acc; -fx-text-fill: white;"/>
+        <Button text="🔄 重置" onAction="#resetSearch" styleClass="action-button"
+                style="-fx-background-color: #6c757d; -fx-text-fill: white;"/>
+    </HBox>
+
+    <TableView fx:id="unitTable" prefHeight="500">
+        <columns>
+            <TableColumn fx:id="selectColumn" text="选择" prefWidth="50">
+            </TableColumn>
+            <TableColumn text="ID" prefWidth="60">
+                <cellValueFactory><PropertyValueFactory property="id"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="单位编码" prefWidth="120">
+                <cellValueFactory><PropertyValueFactory property="unitCode"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="单位名称" prefWidth="150">
+                <cellValueFactory><PropertyValueFactory property="unitName"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="主单位" prefWidth="80">
+                <cellValueFactory><PropertyValueFactory property="isPrimaryText"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="状态" prefWidth="80">
+                <cellValueFactory><PropertyValueFactory property="isEnabledText"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="描述" prefWidth="200">
+                <cellValueFactory><PropertyValueFactory property="description"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="创建时间" prefWidth="150">
+                <cellValueFactory><PropertyValueFactory property="createdAt"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn fx:id="actionColumn" text="操作" prefWidth="150">
+            </TableColumn>
+        </columns>
+    </TableView>
+</VBox>

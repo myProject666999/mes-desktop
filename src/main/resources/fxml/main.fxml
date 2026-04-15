@@ -34,11 +34,7 @@
             </padding>
 
             <VBox fx:id="sidebarMenu" spacing="2">
-                <Button styleClass="sidebar-button, active" text="🏠  控制台" onAction="#showDashboard"/>
-                <Button fx:id="userMenuBtn" styleClass="sidebar-button" text="👥  用户管理" onAction="#showUserManagement"/>
-                <Button fx:id="roleMenuBtn" styleClass="sidebar-button" text="🎭  角色管理" onAction="#showRoleManagement"/>
-                <Button fx:id="permissionMenuBtn" styleClass="sidebar-button" text="🔑  权限管理" onAction="#showPermissionManagement"/>
-                <Button styleClass="sidebar-button" text="🔐  修改密码" onAction="#showChangePassword"/>
+                <!-- 菜单按钮将由代码动态生成 -->
                 <Region VBox.vgrow="ALWAYS"/>
                 <Separator style="-fx-padding: 5 10;"/>
                 <HBox alignment="CENTER_LEFT" spacing="10">
