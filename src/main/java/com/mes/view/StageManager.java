@@ -54,10 +54,12 @@ public class StageManager {
                     primaryStage.setY(event.getScreenY() - yOffset);
                 });
 
-                primaryStage.initStyle(StageStyle.UNDECORATED);
+                primaryStage.setMaximized(false);
                 primaryStage.setScene(scene);
                 primaryStage.setTitle("MES System - Login");
                 primaryStage.setResizable(false);
+                primaryStage.sizeToScene();
+                primaryStage.centerOnScreen();
                 primaryStage.show();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -85,12 +87,21 @@ public class StageManager {
                 primaryStage.setScene(scene);
                 primaryStage.setTitle("MES System");
                 primaryStage.setResizable(true);
-                primaryStage.setMaximized(true);
+                primaryStage.centerOnScreen();
                 primaryStage.show();
+                maximizeWithoutHidingTaskbar();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
+    }
+
+    private void maximizeWithoutHidingTaskbar() {
+        javafx.geometry.Rectangle2D screenBounds = javafx.stage.Screen.getPrimary().getVisualBounds();
+        primaryStage.setX(screenBounds.getMinX());
+        primaryStage.setY(screenBounds.getMinY());
+        primaryStage.setWidth(screenBounds.getWidth());
+        primaryStage.setHeight(screenBounds.getHeight());
     }
 
     public Stage getPrimaryStage() {
@@ -106,6 +117,20 @@ public class StageManager {
     }
 
     public void maximize() {
-        primaryStage.setMaximized(!primaryStage.isMaximized());
+        if (primaryStage.isMaximized()) {
+            primaryStage.setMaximized(false);
+        } else {
+            maximizeWithoutHidingTaskbar();
+        }
+    }
+
+    public void toggleMaximize() {
+        if (primaryStage.getWidth() >= javafx.stage.Screen.getPrimary().getVisualBounds().getWidth() - 10) {
+            primaryStage.setWidth(1280);
+            primaryStage.setHeight(800);
+            primaryStage.centerOnScreen();
+        } else {
+            maximizeWithoutHidingTaskbar();
+        }
     }
 }

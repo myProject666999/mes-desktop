@@ -5,6 +5,8 @@ import com.mes.entity.User;
 import com.mes.repository.RoleRepository;
 import com.mes.repository.UserRepository;
 import com.mes.util.PasswordEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +17,7 @@ import java.util.Set;
 @Service
 public class UserService {
 
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
 
@@ -65,9 +68,12 @@ public class UserService {
 
     @Transactional
     public void resetPassword(Long userId, String newPassword) {
-        User user = userRepository.findById(userId).orElseThrow();
-        user.setPassword(PasswordEncoder.encode(newPassword));
-        userRepository.save(user);
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("用户不存在"));
+        String encodedPassword = PasswordEncoder.encode(newPassword);
+        log.debug("重置密码 - 用户ID: {}, 新密码哈希: {}", userId, encodedPassword);
+        user.setPassword(encodedPassword);
+        User savedUser = userRepository.save(user);
+        log.debug("密码重置成功 - 用户: {}", savedUser.getUsername());
     }
 
     @Transactional
