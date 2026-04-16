@@ -1,53 +1,14 @@
-FROM openjdk:17-jdk-slim
+# 使用 Eclipse Temurin JDK 21 Windows 镜像
+FROM eclipse-temurin:21-jdk-windowsservercore-ltsc2022
 
-LABEL maintainer="MES System"
+# 设置工作目录
+WORKDIR C:/app
 
-ENV DEBIAN_FRONTEND=noninteractive
-ENV DISPLAY=:0
-ENV VNC_PASSWORD=mes123
+# 复制编译好的 jar 文件
+COPY target/javafx-mes-1.0.0.jar .
 
-RUN apt-get update && apt-get install -y \
-    libx11-6 \
-    libxext6 \
-    libxrender1 \
-    libxtst6 \
-    libxi6 \
-    libgl1-mesa-glx \
-    libgtk-3-0 \
-    libxrandr2 \
-    libxcursor1 \
-    libxdamage1 \
-    libxfixes3 \
-    libxinerama1 \
-    libxss1 \
-    libasound2 \
-    libatk1.0-0 \
-    libatk-bridge2.0-0 \
-    libcups2 \
-    libdrm2 \
-    libgbm1 \
-    libpango-1.0-0 \
-    libpangocairo-1.0-0 \
-    libxkbcommon0 \
-    x11vnc \
-    xvfb \
-    fluxbox \
-    x11-utils \
-    wget \
-    novnc \
-    websockify \
-    && rm -rf /var/lib/apt/lists/*
+# 复制数据库文件（如果有）
+COPY mes.db .
 
-WORKDIR /app
-
-COPY target/javafx-mes-1.0.0.jar app.jar
-
-EXPOSE 5900 6080
-
-RUN mkdir -p /root/.vnc && \
-    x11vnc -storepasswd ${VNC_PASSWORD} /root/.vnc/passwd
-
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
-
-ENTRYPOINT ["/docker-entrypoint.sh"]
+# 运行命令 - 运行编译后的 Spring Boot 应用
+CMD ["java", "-jar", "javafx-mes-1.0.0.jar"]
