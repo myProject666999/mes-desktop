@@ -3,6 +3,7 @@ package com.mes.controller;
 import com.mes.dto.UserDTO;
 import com.mes.entity.Role;
 import com.mes.entity.User;
+import com.mes.service.AuthService;
 import com.mes.service.RoleService;
 import com.mes.service.UserService;
 import javafx.application.Platform;
@@ -26,6 +27,7 @@ public class UserManagementController {
 
     private final UserService userService;
     private final RoleService roleService;
+    private final AuthService authService;
 
     @FXML
     private TableView<UserDTO> userTable;
@@ -33,15 +35,27 @@ public class UserManagementController {
     @FXML
     private TableColumn<UserDTO, Boolean> actionColumn;
 
-    public UserManagementController(UserService userService, RoleService roleService) {
+    @FXML
+    private Button addUserBtn;
+
+    public UserManagementController(UserService userService, RoleService roleService, AuthService authService) {
         this.userService = userService;
         this.roleService = roleService;
+        this.authService = authService;
     }
 
     @FXML
     public void initialize() {
         loadUsers();
         setupActionColumn();
+        setupButtonPermissions();
+    }
+
+    private void setupButtonPermissions() {
+        if (addUserBtn != null) {
+            addUserBtn.setVisible(authService.hasPermission("user:create"));
+            addUserBtn.setManaged(authService.hasPermission("user:create"));
+        }
     }
 
     private void loadUsers() {
@@ -52,12 +66,16 @@ public class UserManagementController {
     }
 
     private void setupActionColumn() {
+        boolean canEdit = authService.hasPermission("user:edit");
+        boolean canResetPassword = authService.hasPermission("user:resetPassword");
+        boolean canDelete = authService.hasPermission("user:delete");
+
         Callback<TableColumn<UserDTO, Boolean>, TableCell<UserDTO, Boolean>> cellFactory =
                 param -> new TableCell<>() {
                     final Button editBtn = new Button("编辑");
                     final Button resetBtn = new Button("重置密码");
                     final Button deleteBtn = new Button("删除");
-                    final HBox pane = new HBox(5, editBtn, resetBtn, deleteBtn);
+                    final HBox pane = new HBox(5);
 
                     {
                         editBtn.getStyleClass().addAll("action-button", "edit-button");
@@ -79,6 +97,10 @@ public class UserManagementController {
                             UserDTO dto = getTableView().getItems().get(getIndex());
                             deleteUser(dto);
                         });
+
+                        if (canEdit) pane.getChildren().add(editBtn);
+                        if (canResetPassword) pane.getChildren().add(resetBtn);
+                        if (canDelete) pane.getChildren().add(deleteBtn);
                     }
 
                     @Override
@@ -98,9 +120,11 @@ public class UserManagementController {
 
     @FXML
     public void showAddDialog() {
-        Dialog<User> dialog = createUserDialog("添加用户", null);
-        dialog.showAndWait().ifPresent(user -> {
-            userService.create(user, "123456", user.getRoles().stream()
+        Dialog<UserFormData> dialog = createUserDialog("添加用户", null);
+        dialog.showAndWait().ifPresent(formData -> {
+            User user = formData.getUser();
+            String password = formData.getPassword();
+            userService.create(user, password, user.getRoles().stream()
                     .map(Role::getId)
                     .collect(Collectors.toList()));
             loadUsers();
@@ -109,8 +133,9 @@ public class UserManagementController {
 
     private void showEditDialog(UserDTO dto) {
         User user = userService.findById(dto.getId());
-        Dialog<User> dialog = createUserDialog("编辑用户", user);
-        dialog.showAndWait().ifPresent(updated -> {
+        Dialog<UserFormData> dialog = createUserDialog("编辑用户", user);
+        dialog.showAndWait().ifPresent(formData -> {
+            User updated = formData.getUser();
             userService.update(updated, updated.getRoles().stream()
                     .map(Role::getId)
                     .collect(Collectors.toList()));
@@ -118,8 +143,8 @@ public class UserManagementController {
         });
     }
 
-    private Dialog<User> createUserDialog(String title, User user) {
-        Dialog<User> dialog = new Dialog<>();
+    private Dialog<UserFormData> createUserDialog(String title, User user) {
+        Dialog<UserFormData> dialog = new Dialog<>();
         dialog.setTitle(title);
         dialog.getDialogPane().getStylesheets().add("/css/style.css");
         dialog.getDialogPane().getStyleClass().add("dialog-pane");
@@ -135,6 +160,10 @@ public class UserManagementController {
         TextField usernameField = new TextField();
         usernameField.getStyleClass().add("input-field");
         usernameField.setPromptText("用户名");
+
+        PasswordField passwordField = new PasswordField();
+        passwordField.getStyleClass().add("input-field");
+        passwordField.setPromptText("密码");
 
         TextField realNameField = new TextField();
         realNameField.getStyleClass().add("input-field");
@@ -179,19 +208,26 @@ public class UserManagementController {
             phoneField.setText(user.getPhone());
             enabledCheckBox.setSelected(user.isEnabled());
             user.getRoles().forEach(role -> roleListView.getSelectionModel().select(role));
+            passwordField.setVisible(false);
+            passwordField.setManaged(false);
         }
 
-        grid.add(new Label("用户名:"), 0, 0);
-        grid.add(usernameField, 1, 0);
-        grid.add(new Label("真实姓名:"), 0, 1);
-        grid.add(realNameField, 1, 1);
-        grid.add(new Label("邮箱:"), 0, 2);
-        grid.add(emailField, 1, 2);
-        grid.add(new Label("电话:"), 0, 3);
-        grid.add(phoneField, 1, 3);
-        grid.add(new Label("角色:"), 0, 4);
-        grid.add(roleListView, 1, 4);
-        grid.add(enabledCheckBox, 1, 5);
+        int row = 0;
+        grid.add(new Label("用户名:"), 0, row);
+        grid.add(usernameField, 1, row++);
+        if (user == null) {
+            grid.add(new Label("密码:"), 0, row);
+            grid.add(passwordField, 1, row++);
+        }
+        grid.add(new Label("真实姓名:"), 0, row);
+        grid.add(realNameField, 1, row++);
+        grid.add(new Label("邮箱:"), 0, row);
+        grid.add(emailField, 1, row++);
+        grid.add(new Label("电话:"), 0, row);
+        grid.add(phoneField, 1, row++);
+        grid.add(new Label("角色:"), 0, row);
+        grid.add(roleListView, 1, row++);
+        grid.add(enabledCheckBox, 1, row);
 
         dialog.getDialogPane().setContent(grid);
 
@@ -204,12 +240,31 @@ public class UserManagementController {
                 result.setPhone(phoneField.getText());
                 result.setEnabled(enabledCheckBox.isSelected());
                 result.setRoles(new java.util.HashSet<>(roleListView.getSelectionModel().getSelectedItems()));
-                return result;
+                String password = passwordField.getText();
+                return new UserFormData(result, password);
             }
             return null;
         });
 
         return dialog;
+    }
+
+    private static class UserFormData {
+        private final User user;
+        private final String password;
+
+        public UserFormData(User user, String password) {
+            this.user = user;
+            this.password = password;
+        }
+
+        public User getUser() {
+            return user;
+        }
+
+        public String getPassword() {
+            return password;
+        }
     }
 
     private void showResetPasswordDialog(UserDTO dto) {
