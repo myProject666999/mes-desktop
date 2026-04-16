@@ -1,32 +1,14 @@
-FROM eclipse-temurin:17-jdk-jammy
+# 使用 Eclipse Temurin JDK 21 Windows 镜像
+FROM eclipse-temurin:21-jdk-windowsservercore-ltsc2022
 
-LABEL maintainer="MES System"
+# 设置工作目录
+WORKDIR C:/app
 
-RUN apt-get update && apt-get install -y \
-    libx11-6 \
-    libxext6 \
-    libxrender1 \
-    libxtst6 \
-    libxi6 \
-    libgl1-mesa-glx \
-    libgtk-3-0 \
-    wget \
-    unzip \
-    && rm -rf /var/lib/apt/lists/*
+# 复制编译好的 jar 文件
+COPY target/javafx-mes-1.0.0.jar .
 
-# Download and install JavaFX SDK
-RUN wget -O javafx-sdk.zip https://download2.gluonhq.com/openjfx/21.0.2/openjfx-21.0.2_linux-x64_bin-sdk.zip && \
-    unzip javafx-sdk.zip -d /opt && \
-    rm javafx-sdk.zip
+# 复制数据库文件（如果有）
+COPY mes.db .
 
-ENV PATH_TO_FX=/opt/javafx-sdk-21.0.2/lib
-
-WORKDIR /app
-
-COPY target/javafx-mes-1.0.0.jar app.jar
-
-EXPOSE 8080
-
-ENV DISPLAY=:0
-
-ENTRYPOINT ["java", "--module-path", "/opt/javafx-sdk-21.0.2/lib", "--add-modules", "javafx.controls,javafx.fxml", "--add-exports", "javafx.graphics/com.sun.javafx.util=ALL-UNNAMED", "-jar", "app.jar"]
+# 运行命令 - 运行编译后的 Spring Boot 应用
+CMD ["java", "-jar", "javafx-mes-1.0.0.jar"]
