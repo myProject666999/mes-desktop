@@ -35,6 +35,9 @@
 
             <VBox fx:id="sidebarMenu" spacing="2">
                 <Button styleClass="sidebar-button, active" text="🏠  控制台" onAction="#showDashboard"/>
+                <Label text="主数据" style="-fx-text-fill: #888888; -fx-font-size: 11px; -fx-padding: 10 15 5 15; -fx-font-weight: bold;"/>
+                <Button fx:id="unitMenuBtn" styleClass="sidebar-button" text="📏  计量单位" onAction="#showUnitManagement"/>
+                <Label text="系统管理" style="-fx-text-fill: #888888; -fx-font-size: 11px; -fx-padding: 10 15 5 15; -fx-font-weight: bold;"/>
                 <Button fx:id="userMenuBtn" styleClass="sidebar-button" text="👥  用户管理" onAction="#showUserManagement"/>
                 <Button fx:id="roleMenuBtn" styleClass="sidebar-button" text="🎭  角色管理" onAction="#showRoleManagement"/>
                 <Button fx:id="permissionMenuBtn" styleClass="sidebar-button" text="🔑  权限管理" onAction="#showPermissionManagement"/>
