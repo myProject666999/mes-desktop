@@ -1,69 +1,14 @@
-# 使用 Ubuntu 作为基础镜像
-FROM ubuntu:22.04
+# 使用 Eclipse Temurin JDK 21 Windows 镜像
+FROM eclipse-temurin:21-jdk-windowsservercore-ltsc2022
 
-LABEL maintainer="MES System"
+# 设置工作目录
+WORKDIR C:/app
 
-# 设置非交互式环境变量
-ENV DEBIAN_FRONTEND=noninteractive
+# 复制编译好的 jar 文件
+COPY target/javafx-mes-1.0.0.jar .
 
-# 安装 Java 17 和必要的包
-RUN apt-get update && apt-get install -y \
-    openjdk-17-jdk \
-    libx11-6 \
-    libxext6 \
-    libxrender1 \
-    libxtst6 \
-    libxi6 \
-    libgl1-mesa-glx \
-    libgtk-3-0 \
-    libfontconfig1 \
-    libfreetype6 \
-    libxcomposite1 \
-    libxcursor1 \
-    libxdamage1 \
-    libxfixes3 \
-    libxrandr2 \
-    libasound2 \
-    libpangocairo-1.0-0 \
-    libpango-1.0-0 \
-    libatk1.0-0 \
-    libcairo2 \
-    libgdk-pixbuf2.0-0 \
-    libglib2.0-0 \
-    libxss1 \
-    libnss3 \
-    libdrm2 \
-    libgbm1 \
-    x11vnc \
-    xvfb \
-    fluxbox \
-    wmctrl \
-    && rm -rf /var/lib/apt/lists/*
+# 复制数据库文件（如果有）
+COPY mes.db .
 
-WORKDIR /app
-
-# 复制应用程序 JAR
-COPY target/javafx-mes-1.0.0.jar app.jar
-
-# 创建启动脚本
-RUN cat > /app/start.sh << 'EOF'
-#!/bin/bash
-export DISPLAY=:1
-Xvfb :1 -screen 0 1280x800x24 &
-sleep 2
-fluxbox &
-sleep 1
-x11vnc -display :1 -nopw -forever -shared -rfbport 5900 &
-sleep 2
-java --add-modules javafx.controls,javafx.fxml \
-     --add-exports javafx.graphics/com.sun.javafx.util=ALL-UNNAMED \
-     --add-exports javafx.graphics/com.sun.javafx.application=ALL-UNNAMED \
-     -jar app.jar
-EOF
-
-RUN chmod +x /app/start.sh
-
-# 暴露 VNC 端口
-EXPOSE 5900
-
-ENTRYPOINT ["/app/start.sh"]
+# 运行命令 - 运行编译后的 Spring Boot 应用
+CMD ["java", "-jar", "javafx-mes-1.0.0.jar"]
