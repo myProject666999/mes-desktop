@@ -1,35 +1,14 @@
-FROM dorowu/ubuntu-desktop-lxde-vnc:focal
+# 使用 Eclipse Temurin JDK 21 Windows 镜像
+FROM eclipse-temurin:21-jdk-windowsservercore-ltsc2022
 
-LABEL maintainer="MES System"
+# 设置工作目录
+WORKDIR C:/app
 
-ENV DEBIAN_FRONTEND=noninteractive
-ENV DISPLAY=:1
-ENV RESOLUTION=1920x1080
+# 复制编译好的 jar 文件
+COPY target/javafx-mes-1.0.0.jar .
 
-RUN apt-get update && apt-get install -y \
-    openjdk-17-jdk \
-    libx11-6 \
-    libxext6 \
-    libxrender1 \
-    libxtst6 \
-    libxi6 \
-    libgl1-mesa-glx \
-    libgtk-3-0 \
-    libgtk2.0-0 \
-    && rm -rf /var/lib/apt/lists/*
+# 复制数据库文件（如果有）
+COPY mes.db .
 
-WORKDIR /app
-
-COPY target/javafx-mes-1.0.0.jar /app/app.jar
-
-RUN mkdir -p /root/Desktop && \
-    echo '[Desktop Entry]' > /root/Desktop/MES.desktop && \
-    echo 'Type=Application' >> /root/Desktop/MES.desktop && \
-    echo 'Name=MES System' >> /root/Desktop/MES.desktop && \
-    echo 'Exec=java --add-modules javafx.controls,javafx.fxml -jar /app/app.jar' >> /root/Desktop/MES.desktop && \
-    echo 'Icon=utilities-terminal' >> /root/Desktop/MES.desktop && \
-    chmod +x /root/Desktop/MES.desktop
-
-EXPOSE 80 5900
-
-CMD ["/startup.sh"]
+# 运行命令 - 运行编译后的 Spring Boot 应用
+CMD ["java", "-jar", "javafx-mes-1.0.0.jar"]
