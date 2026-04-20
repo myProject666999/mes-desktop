@@ -3,6 +3,7 @@ package com.mes.controller;
 import com.mes.dto.RoleDTO;
 import com.mes.entity.Permission;
 import com.mes.entity.Role;
+import com.mes.service.AuthService;
 import com.mes.service.PermissionService;
 import com.mes.service.RoleService;
 import javafx.application.Platform;
@@ -23,6 +24,7 @@ public class RoleManagementController {
 
     private final RoleService roleService;
     private final PermissionService permissionService;
+    private final AuthService authService;
 
     @FXML
     private TableView<RoleDTO> roleTable;
@@ -30,15 +32,24 @@ public class RoleManagementController {
     @FXML
     private TableColumn<RoleDTO, Boolean> roleActionColumn;
 
-    public RoleManagementController(RoleService roleService, PermissionService permissionService) {
+    @FXML
+    private Button addRoleButton;
+
+    public RoleManagementController(RoleService roleService, PermissionService permissionService, AuthService authService) {
         this.roleService = roleService;
         this.permissionService = permissionService;
+        this.authService = authService;
     }
 
     @FXML
     public void initialize() {
         loadRoles();
         setupActionColumn();
+        if (addRoleButton != null) {
+            boolean hasPermission = authService.hasPermission("role:add");
+            addRoleButton.setVisible(hasPermission);
+            addRoleButton.setManaged(hasPermission);
+        }
     }
 
     private void loadRoles() {
@@ -53,11 +64,18 @@ public class RoleManagementController {
                 param -> new TableCell<>() {
                     final Button editBtn = new Button("编辑");
                     final Button deleteBtn = new Button("删除");
-                    final HBox pane = new HBox(5, editBtn, deleteBtn);
+                    final HBox pane = new HBox(5);
 
                     {
                         editBtn.getStyleClass().addAll("action-button", "edit-button");
                         deleteBtn.getStyleClass().addAll("action-button", "delete-button");
+
+                        if (authService.hasPermission("role:edit")) {
+                            pane.getChildren().add(editBtn);
+                        }
+                        if (authService.hasPermission("role:delete")) {
+                            pane.getChildren().add(deleteBtn);
+                        }
 
                         editBtn.setOnAction(event -> {
                             RoleDTO dto = getTableView().getItems().get(getIndex());
