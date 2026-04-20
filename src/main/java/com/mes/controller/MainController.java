@@ -1,7 +1,9 @@
 package com.mes.controller;
 
+import com.mes.entity.Menu;
 import com.mes.entity.Permission;
 import com.mes.service.AuthService;
+import com.mes.service.MenuService;
 import com.mes.service.PermissionService;
 import com.mes.service.RoleService;
 import com.mes.service.UserService;
@@ -16,13 +18,21 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.Separator;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.geometry.Insets;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -33,6 +43,7 @@ public class MainController {
     private final UserService userService;
     private final RoleService roleService;
     private final PermissionService permissionService;
+    private final MenuService menuService;
     private final StageManager stageManager;
     private final ApplicationContext applicationContext;
 
@@ -58,21 +69,19 @@ public class MainController {
     private Label userInfoLabel;
 
     @FXML
-    private Button userMenuBtn;
+    private VBox sidebarMenu;
 
-    @FXML
-    private Button roleMenuBtn;
-
-    @FXML
-    private Button permissionMenuBtn;
+    private Map<String, Button> menuButtonMap = new HashMap<>();
 
     public MainController(AuthService authService, UserService userService,
                           RoleService roleService, PermissionService permissionService,
-                          StageManager stageManager, ApplicationContext applicationContext) {
+                          MenuService menuService, StageManager stageManager, 
+                          ApplicationContext applicationContext) {
         this.authService = authService;
         this.userService = userService;
         this.roleService = roleService;
         this.permissionService = permissionService;
+        this.menuService = menuService;
         this.stageManager = stageManager;
         this.applicationContext = applicationContext;
     }
@@ -83,13 +92,78 @@ public class MainController {
         userInfoLabel.setText(welcome);
 
         updateDashboard();
+        loadDynamicMenus();
+    }
 
-        userMenuBtn.setVisible(authService.hasPermission("user:manage"));
-        userMenuBtn.setManaged(authService.hasPermission("user:manage"));
-        roleMenuBtn.setVisible(authService.hasPermission("role:manage"));
-        roleMenuBtn.setManaged(authService.hasPermission("role:manage"));
-        permissionMenuBtn.setVisible(authService.hasPermission("permission:manage"));
-        permissionMenuBtn.setManaged(authService.hasPermission("permission:manage"));
+    private void loadDynamicMenus() {
+        // 清空现有菜单（保留Region和底部元素）
+        List<javafx.scene.Node> nodesToKeep = sidebarMenu.getChildren().stream()
+                .filter(node -> node instanceof Region || node instanceof Separator || 
+                       (node instanceof HBox) || 
+                       (node instanceof Button && "🚪  退出登录".equals(((Button) node).getText())))
+                .collect(Collectors.toList());
+        
+        sidebarMenu.getChildren().clear();
+        menuButtonMap.clear();
+
+        // 从数据库加载当前用户的菜单
+        Long userId = authService.getCurrentUser().getId();
+        List<Menu> menus = menuService.findByUserId(userId);
+
+        // 创建控制台按钮（固定）
+        Button dashboardBtn = createMenuButton("🏠  控制台", "showDashboard", "/fxml/dashboard.fxml");
+        dashboardBtn.getStyleClass().add("active");
+        sidebarMenu.getChildren().add(dashboardBtn);
+
+        // 动态创建菜单按钮
+        for (Menu menu : menus) {
+            if (!"dashboard".equals(menu.getCode())) {
+                String buttonText = menu.getIcon() + "  " + menu.getName();
+                Button menuBtn = createMenuButton(buttonText, menu.getActionMethod(), menu.getFxmlPath());
+                sidebarMenu.getChildren().add(menuBtn);
+                menuButtonMap.put(menu.getCode(), menuBtn);
+            }
+        }
+
+        // 添加底部元素
+        sidebarMenu.getChildren().addAll(nodesToKeep);
+    }
+
+    private Button createMenuButton(String text, String actionMethod, String fxmlPath) {
+        Button button = new Button(text);
+        button.getStyleClass().add("sidebar-button");
+        button.setOnAction(event -> {
+            handleMenuAction(actionMethod, fxmlPath);
+            setActiveButton(button);
+        });
+        return button;
+    }
+
+    private void handleMenuAction(String actionMethod, String fxmlPath) {
+        switch (actionMethod) {
+            case "showDashboard":
+                showDashboard();
+                break;
+            case "showUserManagement":
+                loadView("/fxml/user-management.fxml");
+                break;
+            case "showRoleManagement":
+                loadView("/fxml/role-management.fxml");
+                break;
+            case "showPermissionManagement":
+                loadView("/fxml/permission-management.fxml");
+                break;
+            case "showUnitOfMeasure":
+                loadView("/fxml/unit-of-measure.fxml");
+                break;
+            case "showChangePassword":
+                loadView("/fxml/change-password.fxml");
+                break;
+            default:
+                if (fxmlPath != null) {
+                    loadView(fxmlPath);
+                }
+        }
     }
 
     private void updateDashboard() {
@@ -106,7 +180,6 @@ public class MainController {
     }
 
     private void setActiveButton(Button activeButton) {
-        // 使用递归查找所有带有 sidebar-button 样式的按钮
         findAllButtonsWithStyle(activeButton.getScene().getRoot(), "sidebar-button")
                 .forEach(btn -> btn.getStyleClass().remove("active"));
         activeButton.getStyleClass().add("active");
@@ -130,39 +203,61 @@ public class MainController {
         contentPane.getChildren().clear();
         contentPane.getChildren().add(dashboardView);
         updateDashboard();
-        Button dashboardBtn = (Button) contentPane.getScene().lookup(".sidebar-button");
+        Button dashboardBtn = findDashboardButton();
         if (dashboardBtn != null) {
             setActiveButton(dashboardBtn);
         }
     }
 
+    private Button findDashboardButton() {
+        for (javafx.scene.Node node : sidebarMenu.getChildren()) {
+            if (node instanceof Button && ((Button) node).getText().contains("控制台")) {
+                return (Button) node;
+            }
+        }
+        return null;
+    }
+
     @FXML
     public void showUserManagement() {
         loadView("/fxml/user-management.fxml");
-        setActiveButton(userMenuBtn);
+        setActiveButton(menuButtonMap.get("user"));
     }
 
     @FXML
     public void showRoleManagement() {
         loadView("/fxml/role-management.fxml");
-        setActiveButton(roleMenuBtn);
+        setActiveButton(menuButtonMap.get("role"));
     }
 
     @FXML
     public void showPermissionManagement() {
         loadView("/fxml/permission-management.fxml");
-        setActiveButton(permissionMenuBtn);
+        setActiveButton(menuButtonMap.get("permission"));
+    }
+
+    @FXML
+    public void showUnitOfMeasure() {
+        loadView("/fxml/unit-of-measure.fxml");
+        setActiveButton(menuButtonMap.get("unitofmeasure"));
     }
 
     @FXML
     public void showChangePassword() {
         loadView("/fxml/change-password.fxml");
-        findAllButtonsWithStyle(contentPane.getScene().getRoot(), "sidebar-button")
-                .forEach(btn -> {
-                    if ("🔐  修改密码".equals(btn.getText())) {
-                        setActiveButton(btn);
-                    }
-                });
+        Button changePasswordBtn = findButtonByText("🔐  修改密码");
+        if (changePasswordBtn != null) {
+            setActiveButton(changePasswordBtn);
+        }
+    }
+
+    private Button findButtonByText(String text) {
+        for (javafx.scene.Node node : sidebarMenu.getChildren()) {
+            if (node instanceof Button && text.equals(((Button) node).getText())) {
+                return (Button) node;
+            }
+        }
+        return null;
     }
 
     private void loadView(String fxmlPath) {
