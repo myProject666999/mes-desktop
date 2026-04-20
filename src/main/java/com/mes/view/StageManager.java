@@ -54,10 +54,13 @@ public class StageManager {
                     primaryStage.setY(event.getScreenY() - yOffset);
                 });
 
-                primaryStage.initStyle(StageStyle.UNDECORATED);
                 primaryStage.setScene(scene);
                 primaryStage.setTitle("MES System - Login");
                 primaryStage.setResizable(false);
+                primaryStage.setWidth(500);
+                primaryStage.setHeight(400);
+                primaryStage.setMaximized(false);
+                primaryStage.centerOnScreen();
                 primaryStage.show();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -85,7 +88,8 @@ public class StageManager {
                 primaryStage.setScene(scene);
                 primaryStage.setTitle("MES System");
                 primaryStage.setResizable(true);
-                primaryStage.setMaximized(true);
+                primaryStage.setMaximized(false);
+                maximize();
                 primaryStage.show();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -106,6 +110,18 @@ public class StageManager {
     }
 
     public void maximize() {
-        primaryStage.setMaximized(!primaryStage.isMaximized());
+        if (primaryStage.getX() == 0 && primaryStage.getY() == 0) {
+            primaryStage.setX(50);
+            primaryStage.setY(50);
+            primaryStage.setWidth(1280);
+            primaryStage.setHeight(800);
+            primaryStage.centerOnScreen();
+        } else {
+            javafx.geometry.Rectangle2D visualBounds = javafx.stage.Screen.getPrimary().getVisualBounds();
+            primaryStage.setX(visualBounds.getMinX());
+            primaryStage.setY(visualBounds.getMinY());
+            primaryStage.setWidth(visualBounds.getWidth());
+            primaryStage.setHeight(visualBounds.getHeight());
+        }
     }
 }
